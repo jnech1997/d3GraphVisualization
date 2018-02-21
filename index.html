@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html style="width:100%; height:100%">
+    <head>
+        <link rel="stylesheet" type= "text/css" href="./style.css">
+        <script src="https://d3js.org/d3.v4.min.js"></script>
+        <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.7.0/jquery.min.js"></script>
+        <script src="./graphGenerator.js"></script>
+        <script src="./queue.js"></script>
+    </head>
+
+    <body style="width:100%; height:100%">
+        <h3 id="title">Graph Visualization</h3>
+        <svg id= "graphSpace" height="90%" width="90%"></svg>
+        <script id="graph">
+            /**Sleep function:
+            https://stackoverflow.com/questions/951021/what-is-the-javascript-version-of-sleep */
+            function sleep(ms) {
+                return new Promise(resolve => setTimeout(resolve, ms));
+            }
+
+            /* Return a list of nodes that represents the path of the
+            BFS or DFS from startNode to endNode. Pre: settled is the
+            map of nodes to their backpointers along the path. endNode is the
+            destination node along the path. */
+            function path(settled, endNode) {
+                var backwards_path= [];
+                while (endNode != null) {
+                    var x= endNode.cx;
+                    var y= endNode.cy;
+                    backwards_path.push(endNode);
+                    endNode= settled.get(endNode);
+                    if (endNode != null) {
+                        var id= x * endNode.cx + y * endNode.cy;
+                        id= ""+ id;
+                        $("#"+id).css("stroke", "red");
+                        $("#"+id).css("opacity", 1);
+                    }
+                }
+                return backwards_path.reverse();
+            }
+
+            /* Return a path from a start node to an end node using DFS */
+            function DFS(nodes, graph) {
+                var startNodeIndex= Math.floor(Math.random()*nodes.length);
+                var startNode= nodes[startNodeIndex];
+                var endNodeIndex= Math.floor(Math.random()*nodes.length);
+                var endNode= nodes[endNodeIndex];
+                var settled= new Map();
+                var frontier= new Stack();
+                settled.set(startNode, null);
+                frontier.push(startNode);
+                while (!frontier.isEmpty()) {
+                    var f= frontier.pop();
+                    if (f == endNode) {return path(settled, f);}
+                    neighbors= graph.get(f);
+                    for (let n of neighbors) {
+                        if (!settled.has(n)) {
+                            frontier.push(n);
+                            settled.set(n, f);
+                        }
+
+                    }
+                }
+                document.getElementById("title").innerHTML= "No path was found!";
+                return [];
+            }
+
+            /* Return a path from a start node to an end node using BFS */
+            function BFS(nodes, graph) {
+                var startNodeIndex= Math.floor(Math.random()*nodes.length);
+                var startNode= nodes[startNodeIndex];
+                var endNodeIndex= Math.floor(Math.random()*nodes.length);
+                var endNode= nodes[endNodeIndex];
+                var settled= new Map();
+                var frontier= new Queue();
+                settled.set(startNode, null);
+                frontier.enqueue(startNode);
+                while (!frontier.isEmpty()) {
+                    var f= frontier.dequeue();
+                    if (f == endNode) {return path(settled, f);}
+                    neighbors= graph.get(f);
+                    for (let n of neighbors) {
+                        if (!settled.has(n)) {
+                            frontier.enqueue(n);
+                            settled.set(n, f);
+                        }
+
+                    }
+                }
+                document.getElementById("title").innerHTML= "No path was found!";
+                return [];
+            }
+
+            /** MAIN */
+            async function main(nodes, graph) {
+                //build the graph
+                var svg= d3.select("svg");
+                for (var [node, edges] of graph) {
+                    nodes.push(node);
+                    var cx= node.cx;
+                    var cy= node.cy;
+                    svg.append("circle")
+                    .attr("id", (cx + cy))
+                    .attr("cx", cx)
+                    .attr("cy", cy)
+                    .attr("r", 10)
+                    .attr("fill", "black");
+                    for (let n of edges) {
+                        svg.append("line")
+                        .attr("id", (cx * n.cx) + (cy * n.cy))
+                        .attr("x1", cx)
+                        .attr("y1", cy)
+                        .attr("x2", n.cx)
+                        .attr("y2", n.cy)
+                        .attr("stroke", "black")
+                        .attr("opacity", .1);
+                    }
+                }
+                //find a path
+                var path= DFS(nodes, graph);
+                //display the path
+                for (var i= 0; i < path.length; i++) {
+                    var node= path[i];
+                    var id= (node.cx + node.cy);
+                    id= ""+ id;
+                    if (i == path.length-1) {
+                        $("#"+id).css("fill", "red");
+                        await sleep(1000);
+                    }
+                    else if (i == 0) {
+                        $("#"+id).css("fill", "blue");
+                        await sleep(1000);
+                    }
+                    else {
+                        $("#"+id).css("fill", "green");
+                        await sleep(1000);
+                    }
+                }
+            }
+
+            //Call the main function
+            $(document).ready(function () {
+                var graph= makeGraph(50);
+                var nodes= []
+                main(nodes, graph);
+            });
+        </script>
+    </body>
+</html>
