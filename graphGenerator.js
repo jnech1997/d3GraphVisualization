@@ -25,11 +25,13 @@ var makeGraph= function (size) {
     var cx= Math.floor(Math.random()*svgX);
     var cy= Math.floor(Math.random()*svgY);
     var newNode= new Node(cx, cy);
-    nodes.push(newNode);
+    if (!nodes.includes(newNode)) {
+      nodes.push(newNode);
+    }
   }
   //for each node, create a set of edges to other nodes
   for (var i in nodes) {
-    var numEdges= Math.floor(Math.random()*nodes.length/10) + 1;
+    var numEdges= Math.floor(Math.random()*nodes.length/4) + 1;
     edges= new Set();
     for (var e= 0; e < numEdges; e++) {
       var randNodeIndex= Math.floor(Math.random()*nodes.length);
