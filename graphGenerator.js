@@ -14,8 +14,8 @@ class Node {
 }
 
 var makeGraph= function (size) {
-  var svgX= $("svg").css("width");
-  var svgY= $("svg").css("height");
+  var svgX= $('svg').css('width');
+  var svgY= $('svg').css('height');
   svgX= parseInt(svgX.substring(0, svgX.length-2));
   svgY= parseInt(svgY.substring(0, svgY.length-2));
   var graph= new Map();
